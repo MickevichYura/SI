@@ -51,6 +51,7 @@ public static class MediaController
             if (media.NaturalDuration.HasTimeSpan)
             {
                 media.Position = TimeSpan.FromSeconds(media.NaturalDuration.TimeSpan.TotalSeconds * slider.Value / 100);
+                UpdateTime(media);
             }
         };
 
@@ -71,6 +72,8 @@ public static class MediaController
                     {
                         blocked = false;
                     }
+
+                    UpdateTime(media);
                 }
             });
         };
@@ -79,6 +82,8 @@ public static class MediaController
         {
             if (media.NaturalDuration.HasTimeSpan)
             {
+                UpdateTime(media);
+
                 try
                 {
                     timer.Start();
@@ -99,6 +104,13 @@ public static class MediaController
 
         media.Unloaded += ended;
     }
+
+    public static TextBlock GetTime(DependencyObject obj) => (TextBlock)obj.GetValue(TimeProperty);
+
+    public static void SetTime(DependencyObject obj, TextBlock value) => obj.SetValue(TimeProperty, value);
+
+    public static readonly DependencyProperty TimeProperty =
+        DependencyProperty.RegisterAttached("Time", typeof(TextBlock), typeof(MediaController), new PropertyMetadata(null));
 
     public static ToggleButton GetPlayPauseButton(DependencyObject obj) => (ToggleButton)obj.GetValue(PlayPauseButtonProperty);
 
@@ -222,6 +234,21 @@ public static class MediaController
 
     public static readonly DependencyProperty IsPlayingProperty =
         DependencyProperty.RegisterAttached("IsPlaying", typeof(bool), typeof(MediaController), new PropertyMetadata(false));
+
+    private static void UpdateTime(MediaElement media)
+    {
+        var time = GetTime(media);
+
+        if (time == null)
+        {
+            return;
+        }
+
+        time.Text = $"{FormatTime(media.Position)} / {FormatTime(media.NaturalDuration.TimeSpan)}";
+    }
+
+    private static string FormatTime(TimeSpan time) =>
+        time.TotalHours >= 1.0 ? time.ToString(@"h\:mm\:ss") : time.ToString(@"m\:ss");
 
     private static void StopPreviousMedia(MediaElement mediaElement, ToggleButton playPauseButton)
     {
