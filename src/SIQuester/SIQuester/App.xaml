@@ -1067,6 +1067,11 @@
                 <Setter Property="Margin" Value="20,0,0,0" />
             </Style>
 
+            <Style x:Key="playTime" TargetType="TextBlock">
+                <Setter Property="Margin" Value="10,0,0,0" />
+                <Setter Property="VerticalAlignment" Value="Center" />
+            </Style>
+
             <!-- FullTreeView start -->
 
             <Style x:Key="PackageStyle" BasedOn="{StaticResource QTreeViewItem}" TargetType="{x:Type TreeViewItem}">
@@ -2838,6 +2843,7 @@
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="4" ToolTip="{Binding Model.Value}">
                                 <ToggleButton Style="{StaticResource playButton}" Name="play" />
                                 <Slider Style="{StaticResource playSlider}" Name="progress" />
+                                <TextBlock Style="{StaticResource playTime}" Name="time" />
 
                                 <MediaElement
                                     Name="mediaElement1"
@@ -2846,7 +2852,8 @@
                                     UnloadedBehavior="Manual"
                                     ScrubbingEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasVideo}"
                                     lb:MediaController.PlayPauseButton="{Binding ElementName=play}"
-                                    lb:MediaController.Progress="{Binding ElementName=progress}" />
+                                    lb:MediaController.Progress="{Binding ElementName=progress}"
+                                    lb:MediaController.Time="{Binding ElementName=time}" />
                             </StackPanel>
                         </DataTemplate>
                     </Setter.Value>
@@ -2899,11 +2906,13 @@
                                     Height="200"
                                     ScrubbingEnabled="{Binding RelativeSource={RelativeSource Self}, Path=HasVideo}"
                                     lb:MediaController.PlayPauseButton="{Binding ElementName=play}"
-                                    lb:MediaController.Progress="{Binding ElementName=progress}" />
+                                    lb:MediaController.Progress="{Binding ElementName=progress}"
+                                    lb:MediaController.Time="{Binding ElementName=time}" />
 
                                 <StackPanel Orientation="Horizontal" Grid.Row="1" Margin="0,5,0,0">
                                     <ToggleButton Style="{StaticResource playButton}" Name="play" />
                                     <Slider Style="{StaticResource playSlider}" Name="progress" />
+                                    <TextBlock Style="{StaticResource playTime}" Name="time" />
                                 </StackPanel>
                             </Grid>
                         </DataTemplate>
