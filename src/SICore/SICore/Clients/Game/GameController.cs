@@ -43,6 +43,8 @@ public sealed class GameController : ITaskRunHandler<Tasks>, IDisposable
     /// </summary>
     private const double PartialPrintFrequencyPerSecond = 0.5;
 
+    private const string AnswerLinesSeparator = "; ";
+
     /// <summary>
     /// Execution completion;
     /// </summary>
@@ -3325,8 +3327,8 @@ public sealed class GameController : ITaskRunHandler<Tasks>, IDisposable
     {
         var question = _state.Question ?? throw new InvalidOperationException("Question is null");
 
-        var rightAnswers = question.Right;
-        var wrongAnswers = question.Wrong;
+        var rightAnswers = GetRightAnswersForShowman(question);
+        var wrongAnswers = question.Wrong.Select(ToSingleLine).ToArray();
 
         ICollection<string> appellatedAnswers = Array.Empty<string>();
 
@@ -3451,6 +3453,44 @@ public sealed class GameController : ITaskRunHandler<Tasks>, IDisposable
         WaitFor(DecisionType.Answering, waitAnswerTime, _state.AnswererIndex);
     }
 
+    /// <summary>
+    /// Gets right answers to display to the showman.
+    /// </summary>
+    /// <remarks>
+    /// When the question has no right answer text but has an answer content parameter,
+    /// the text items of that parameter are used instead so the showman still gets a hint.
+    /// </remarks>
+    private static ICollection<string> GetRightAnswersForShowman(Question question)
+    {
+        if (question.Right.Any(answer => !string.IsNullOrWhiteSpace(answer)))
+        {
+            return question.Right.Select(ToSingleLine).ToArray();
+        }
+
+        if (!question.Parameters.TryGetValue(QuestionParameterNames.Answer, out var answerParameter)
+            || answerParameter.ContentValue == null)
+        {
+            return question.Right;
+        }
+
+        var answerText = string.Join(
+            AnswerLinesSeparator,
+            answerParameter.ContentValue
+                .Where(item => item.Type == ContentTypes.Text)
+                .Select(item => ToSingleLine(item.Value))
+                .Where(text => text.Length > 0));
+
+        return answerText.Length > 0 ? new[] { answerText } : question.Right;
+    }
+
+    /// <summary>
+    /// Joins answer lines because a line break is a message arguments separator.
+    /// </summary>
+    private static string ToSingleLine(string answer) =>
+        string.Join(
+            AnswerLinesSeparator,
+            answer.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
     internal void SendQuestionAnswersToShowman()
     {
         var question = _state.Question;
@@ -3460,8 +3500,8 @@ public sealed class GameController : ITaskRunHandler<Tasks>, IDisposable
             return;
         }
 
-        var rightAnswers = question.Right;
-        var wrongAnswers = question.Wrong;
+        var rightAnswers = GetRightAnswersForShowman(question);
+        var wrongAnswers = question.Wrong.Select(ToSingleLine).ToArray();
 
         ICollection<string> appellatedAnswers = Array.Empty<string>();
 
